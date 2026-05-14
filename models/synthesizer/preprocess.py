@@ -37,6 +37,12 @@ data_info = {
         "trans_filepath": "transcript/aishell_transcript_v0.8.txt",
         "speak_func": preprocess_general
     }
+    ,
+    "my_voice": {
+        "subfolders": ["raw"],
+        "trans_filepath": "transcript.txt",
+        "speak_func": preprocess_general
+    }
 }
 
 def should_skip(fpath: Path, skip_existing: bool) -> bool:

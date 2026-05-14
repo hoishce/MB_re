@@ -24,3 +24,37 @@ log
 /datasets
 monotonic_align/build
 monotonic_align/monotonic_align
+
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+.venv/
+.venv*/
+venv/
+env/
+
+# Generated audio, datasets, models and pipeline outputs
+base/
+references/
+pipeline_temp/
+mockingbird_dataset/
+dataset_build/
+saved_models/
+temp_audio/
+*.ckpt
+*.onnx
+*.pt
+*.pth
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.mp4
+*.jsonl
+
+# Tool/runtime caches
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

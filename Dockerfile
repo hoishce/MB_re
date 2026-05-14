@@ -2,9 +2,9 @@ FROM pytorch/pytorch:latest
 
 RUN apt-get update && apt-get install -y build-essential ffmpeg parallel aria2 && apt-get clean
 
-COPY ./requirements.txt /workspace/requirements.txt
+COPY ./requirements-main.txt /workspace/requirements-main.txt
 
-RUN pip install -r requirements.txt && pip install webrtcvad-wheels
+RUN pip install -r requirements-main.txt && pip install webrtcvad-wheels
 
 COPY . /workspace
 

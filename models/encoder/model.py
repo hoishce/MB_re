@@ -85,7 +85,7 @@ class SpeakerEncoder(nn.Module):
         # We vectorize the computation for efficiency.
         sim_matrix = torch.zeros(speakers_per_batch, utterances_per_speaker,
                                  speakers_per_batch).to(self.loss_device)
-        mask_matrix = 1 - np.eye(speakers_per_batch, dtype=np.int)
+        mask_matrix = 1 - np.eye(speakers_per_batch, dtype=np.int64)
         for j in range(speakers_per_batch):
             mask = np.where(mask_matrix[j])[0]
             sim_matrix[mask, :, j] = (embeds[mask] * centroids_incl[j]).sum(dim=2)
@@ -94,7 +94,7 @@ class SpeakerEncoder(nn.Module):
         ## Even more vectorized version (slower maybe because of transpose)
         # sim_matrix2 = torch.zeros(speakers_per_batch, speakers_per_batch, utterances_per_speaker
         #                           ).to(self.loss_device)
-        # eye = np.eye(speakers_per_batch, dtype=np.int)
+        # eye = np.eye(speakers_per_batch, dtype=np.int64)
         # mask = np.where(1 - eye)
         # sim_matrix2[mask] = (embeds[mask[0]] * centroids_incl[mask[1]]).sum(dim=2)
         # mask = np.where(eye)
@@ -124,7 +124,7 @@ class SpeakerEncoder(nn.Module):
         
         # EER (not backpropagated)
         with torch.no_grad():
-            inv_argmax = lambda i: np.eye(1, speakers_per_batch, i, dtype=np.int)[0]
+            inv_argmax = lambda i: np.eye(1, speakers_per_batch, i, dtype=np.int64)[0]
             labels = np.array([inv_argmax(i) for i in ground_truth])
             preds = sim_matrix.detach().cpu().numpy()
 

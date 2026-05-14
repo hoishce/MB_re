@@ -1,0 +1,8 @@
+# Demucs-only legacy environment.
+# Install PyTorch separately if you need a specific CUDA/CPU build.
+
+demucs==4.0.1
+soundfile
+pydub
+librosa
+numpy==2.2.2

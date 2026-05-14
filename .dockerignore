@@ -2,3 +2,15 @@
 !vocoder/saved_models/pretrained/**
 !encoder/saved_models/pretrained.pt
 /datasets
+.env
+.venv
+.venv*
+venv
+env
+pipeline_temp
+mockingbird_dataset
+dataset_build
+references
+base
+temp_audio
+__pycache__

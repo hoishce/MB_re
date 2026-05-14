@@ -1,6 +1,19 @@
+from pathlib import Path
+import sys
+import os
+import webbrowser
+# Ensure repo root is importable and DLL priority is set early
+repo_root = Path(__file__).resolve().parents[2]
+if str(repo_root) not in sys.path:
+    sys.path.insert(0, str(repo_root))
+try:
+    import ensure_dlls
+    ensure_dlls.ensure_dll_priority()
+except Exception:
+    pass
+
 from utils.argutils import print_args
 from models.encoder.train import train
-from pathlib import Path
 import argparse
 
 
@@ -36,6 +49,9 @@ if __name__ == "__main__":
     parser.add_argument("--visdom_server", type=str, default="http://localhost")
     parser.add_argument("--no_visdom", action="store_true", help= \
         "Disable visdom.")
+    parser.add_argument("--start_visdom", action="store_true", help="Start a local visdom server before training")
+    parser.add_argument("--visdom_port", type=int, default=8097, help="Port for visdom server")
+    parser.add_argument("--visdom_host", type=str, default="127.0.0.1", help="Hostname for visdom server")
     args = parser.parse_args()
     
     # Process the arguments
@@ -43,5 +59,21 @@ if __name__ == "__main__":
     
     # Run the training
     print_args(args, parser)
+    auto_visdom = os.environ.get("MOCKINGBIRD_AUTO_VISDOM", "1").strip().lower() not in {"0", "false", "no"}
+    should_start_visdom = auto_visdom or getattr(args, "start_visdom", False)
+    if should_start_visdom and not getattr(args, "no_visdom", False):
+        try:
+            from tools.visdom_helper import start_visdom_server
+            started = start_visdom_server(port=args.visdom_port, host=args.visdom_host)
+            if started:
+                print(f"Started visdom server at {args.visdom_host}:{args.visdom_port}")
+                try:
+                    webbrowser.open(f"http://{args.visdom_host}:{args.visdom_port}")
+                except Exception:
+                    pass
+            else:
+                print(f"Failed to start visdom server at {args.visdom_host}:{args.visdom_port}")
+        except Exception as e:
+            print(f"Warning: could not start visdom helper: {e}")
+
     train(**vars(args))
-    

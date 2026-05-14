@@ -45,10 +45,51 @@ def load_model(weights_fpath, config_fpath=None, verbose=True):
         _device = torch.device('cpu')
 
     generator = Generator(h).to(_device)
-    state_dict_g = load_checkpoint(
-        weights_fpath, _device
-    )
-    generator.load_state_dict(state_dict_g['generator'])
+    checkpoint = load_checkpoint(weights_fpath, _device)
+
+    # Determine actual state_dict for generator in various checkpoint formats
+    if isinstance(checkpoint, dict):
+        if 'generator' in checkpoint and isinstance(checkpoint['generator'], dict):
+            state_dict = checkpoint['generator']
+        elif 'model' in checkpoint and isinstance(checkpoint['model'], dict):
+            state_dict = checkpoint['model']
+        elif 'state_dict' in checkpoint and isinstance(checkpoint['state_dict'], dict):
+            state_dict = checkpoint['state_dict']
+        elif 'model_state' in checkpoint and isinstance(checkpoint['model_state'], dict):
+            state_dict = checkpoint['model_state']
+        else:
+            # maybe the checkpoint is already the state dict
+            state_dict = checkpoint
+    else:
+        state_dict = checkpoint
+
+    # Helper to strip common prefixes like 'module.' or 'generator.'
+    def _strip_prefix(sd, prefix):
+        keys = list(sd.keys())
+        if any(k.startswith(prefix) for k in keys):
+            return { (k[len(prefix):] if k.startswith(prefix) else k): v for k,v in sd.items() }
+        return sd
+
+    state_dict = _strip_prefix(state_dict, 'module.')
+    state_dict = _strip_prefix(state_dict, 'generator.')
+
+    # Load with strict=False to be tolerant to slight key mismatches
+    try:
+        load_result = generator.load_state_dict(state_dict, strict=False)
+        if verbose:
+            try:
+                print('hifigan load_state_dict result: missing_keys=', load_result.missing_keys)
+                print('hifigan load_state_dict result: unexpected_keys=', load_result.unexpected_keys)
+            except Exception:
+                print('hifigan load_state_dict result:', load_result)
+    except Exception as exc:
+        # fallback: try to load the checkpoint directly as a state_dict
+        try:
+            generator.load_state_dict(checkpoint)
+        except Exception as exc2:
+            print('Failed to load HiFi-GAN generator state_dict:', exc2)
+            raise exc
+
     generator.eval()
     generator.remove_weight_norm()
 

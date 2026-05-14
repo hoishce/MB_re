@@ -8,7 +8,8 @@ recognized_datasets = [
     "aidatatang_200zh_s",
     "magicdata",
     "aishell3",
-    "data_aishell"
+    "data_aishell",
+    "my_voice"
 ]
 
 #TODO: add for emotional data 

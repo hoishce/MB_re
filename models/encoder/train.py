@@ -5,6 +5,14 @@ from models.encoder.model import SpeakerEncoder
 from utils.profiler import Profiler
 from pathlib import Path
 import torch
+from urllib.parse import urlparse
+
+
+def _parse_visdom_server(server: str) -> tuple[str, int]:
+    parsed = urlparse(server if "://" in server else f"http://{server}")
+    host = parsed.hostname or "127.0.0.1"
+    port = parsed.port or 8097
+    return host, port
 
 def sync(device: torch.device):
     # For correct profiling (cuda operations are async)
@@ -54,9 +62,27 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
     else:
         print("Starting the training from scratch.")
     model.train()
+
+    if not no_visdom:
+        try:
+            from tools.visdom_helper import is_visdom_running, start_visdom_server
+
+            visdom_host, visdom_port = _parse_visdom_server(visdom_server)
+            if not is_visdom_running(host=visdom_host, port=visdom_port):
+                started = start_visdom_server(port=visdom_port, host=visdom_host)
+                if started:
+                    print(f"Started visdom server at {visdom_host}:{visdom_port}")
+                else:
+                    print(f"Failed to start visdom server at {visdom_host}:{visdom_port}")
+        except Exception as exc:
+            print(f"Warning: could not auto-start visdom helper: {exc}")
     
     # Initialize the visualization environment
-    vis = Visualizations(run_id, vis_every, server=visdom_server, disabled=no_visdom)
+    try:
+        vis = Visualizations(run_id, vis_every, server=visdom_server, disabled=no_visdom)
+    except Exception as exc:
+        print(f"Warning: visdom unavailable, continuing without visualization: {exc}")
+        vis = Visualizations(run_id, vis_every, server=visdom_server, disabled=True)
     vis.log_dataset(dataset)
     vis.log_params()
     device_name = str(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU")

@@ -1,0 +1,11 @@
+# Advanced audio-cleaning environment.
+# Install PyTorch separately if you need a specific CUDA/CPU build.
+
+numpy==2.2.2
+numba>=0.65.1
+scipy>=1.10.0
+librosa
+soundfile
+pydub
+faster-whisper
+pyannote.audio==4.0.4

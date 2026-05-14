@@ -2,8 +2,10 @@ from models.synthesizer.hparams import hparams
 from models.synthesizer.train import train
 from utils.argutils import print_args
 import argparse
+import sys
 
-def new_train():
+
+def new_train(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("run_id", type=str, help= \
         "Name for this model instance. If a model state from the same run ID was previously "
@@ -26,8 +28,8 @@ def new_train():
         "Do not load any saved model and restart from scratch.")
     parser.add_argument("--hparams", default="",
                         help="Hyperparameter overrides as a comma-separated list of name=value "
-							 "pairs")
-    args, _ = parser.parse_known_args()
+                             "pairs")
+    args, _ = parser.parse_known_args(argv)
     print_args(args, parser)
 
     args.hparams = hparams.parse(args.hparams)
@@ -37,4 +39,4 @@ def new_train():
 
 
 if __name__ == "__main__":
-    new_train()
+    new_train(sys.argv[1:])

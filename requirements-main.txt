@@ -1,0 +1,9 @@
+# Main training/inference environment.
+# Install PyTorch separately if you need a specific CUDA/CPU build.
+
+numpy==1.26.4
+librosa
+soundfile
+pydub
+torch
+torchaudio

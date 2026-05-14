@@ -7,6 +7,8 @@
 
 ### [DEMO VIDEO](https://www.bilibili.com/video/BV17Q4y1B7mY/) | [Wiki教程](https://github.com/babysor/MockingBird/wiki/Quick-Start-(Newbie)) ｜ [训练教程](https://vaj2fgg8yn.feishu.cn/docs/doccn7kAbr3SJz0KM0SIDJ0Xnhd)
 
+本地工程补充说明请查看 [PROJECT_GUIDE.md](PROJECT_GUIDE.md)，数据准备与训练流程请查看 [TRAINING_GUIDE.md](TRAINING_GUIDE.md)。
+
 ## 特性
 🌍 **中文** 支持普通话并使用多种中文数据集进行测试：aidatatang_200zh, magicdata, aishell3, biaobei, MozillaCommonVoice, data_aishell 等
 

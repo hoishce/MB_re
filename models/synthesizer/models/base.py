@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import imp
 import numpy as np
 
 class Base(nn.Module):
@@ -48,14 +47,48 @@ class Base(nn.Module):
     def load(self, path, device, optimizer=None):
         # Use device of model params as location for loaded state
         checkpoint = torch.load(str(path), map_location=device)
-        if "model_state" in checkpoint:
-            state = checkpoint["model_state"]
-        else:
-            state = checkpoint["model"]
-        self.load_state_dict(state, strict=False)
 
-        if "optimizer_state" in checkpoint and optimizer is not None:
-            optimizer.load_state_dict(checkpoint["optimizer_state"])
+        # determine where the actual state_dict is stored in checkpoint
+        if isinstance(checkpoint, dict):
+            if "model_state" in checkpoint:
+                state = checkpoint["model_state"]
+            elif "state_dict" in checkpoint:
+                state = checkpoint["state_dict"]
+            elif "model" in checkpoint:
+                state = checkpoint["model"]
+            else:
+                # assume checkpoint itself is a state_dict mapping
+                state = checkpoint
+        else:
+            state = checkpoint
+
+        # filter keys to only those that exist in current model and have matching shape
+        model_state = self.state_dict()
+        filtered_state = {}
+
+        def _strip_module(k):
+            return k[7:] if k.startswith('module.') else k
+
+        for k, v in state.items():
+            k_stripped = _strip_module(k)
+            if k_stripped in model_state:
+                if model_state[k_stripped].shape == v.shape:
+                    filtered_state[k_stripped] = v
+                else:
+                    print(f"Skipping parameter {k_stripped}: checkpoint shape={v.shape}, model shape={model_state[k_stripped].shape}")
+            else:
+                # key not found in current model; skip
+                print(f"Skipping parameter {k} as it does not exist in the current model")
+
+        # load filtered parameters
+        self.load_state_dict(filtered_state, strict=False)
+
+        # load optimizer state if present
+        if isinstance(checkpoint, dict) and "optimizer_state" in checkpoint and optimizer is not None:
+            try:
+                optimizer.load_state_dict(checkpoint["optimizer_state"])
+            except Exception as e:
+                print('Could not load optimizer state:', e)
 
     def save(self, path, optimizer=None):
         if optimizer is not None:
